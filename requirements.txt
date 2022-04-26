@@ -6,6 +6,6 @@ pydegensac
 tensorboard
 tensorflow
 tqdm
-./submodules/torch-localize
-./submodules/torch-dimcheck
-./submodules/unets
+/content/disk/submodules/torch-localize
+/content/disk/submodules/torch-dimcheck
+/content/disk/submodules/unets
