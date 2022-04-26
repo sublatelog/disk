@@ -74,8 +74,7 @@ class SceneDataset:
     def __init__(self, image_path, crop_size=(None, None)):
         self.image_path = image_path
         self.crop_size  = crop_size
-        self.names = [p for p in os.listdir(image_path) \
-                      if p.endswith(args.image_extension)]
+        self.names = [p for p in os.listdir(image_path) if p.endswith(args.image_extension)] # jpg
 
     def __len__(self):
         return len(self.names)
@@ -83,14 +82,14 @@ class SceneDataset:
     def __getitem__(self, ix):
         name   = self.names[ix]
         path   = os.path.join(self.image_path, name) 
-        img    = np.ascontiguousarray(imageio.imread(path))
+        img    = np.ascontiguousarray(imageio.imread(path)) # np.ascontiguousarray():メモリ内の連続した配列
         tensor = torch.from_numpy(img).to(torch.float32)
 
         if len(tensor.shape) == 2: # some images may be grayscale
             tensor = tensor.unsqueeze(-1).expand(-1, -1, 3)
 
         bitmap              = tensor.permute(2, 0, 1) / 255.
-        extensionless_fname = os.path.splitext(name)[0]
+        extensionless_fname = os.path.splitext(name)[0] # 拡張子無のファイル名
 
         image = Image(bitmap, extensionless_fname)
 
@@ -179,66 +178,39 @@ def extract(dataset, save_path):
                 score_h5.create_dataset(image.fname, data=scores)
 
             pbar.set_postfix(n=keypoints.shape[0])
+            
+            
 if __name__ == '__main__':
+    
+    """
+     detect.py h5_artifacts_destination images_directory
+    """    
+    
     parser = argparse.ArgumentParser(description=(
         "Script for detection and description (but not matching) of keypoints. "
-        "It processes all images with extension given by `--image-extension` found "
-        "in `image-path` directory. Images are resized to `--height` x `--width` "
-        "for internal processing (padding them if necessary) and the output "
-        "coordinates are then transformed back to original image size."),
-    
+        "It processes all images with extension given by `--image-extension` found in `image-path` directory. "
+        "Images are resized to `--height` x `--width` for internal processing (padding them if necessary) "
+        " and the output coordinates are then transformed back to original image size."),    
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument(
-        '--height', default=None, type=int,
-        help='rescaled height (px). If unspecified, image is not resized in height dimension'
-    )
-    parser.add_argument(
-        '--width', default=None, type=int,
-        help='rescaled width (px). If unspecified, image is not resized in width dimension'
-    )
-    parser.add_argument(
-        '--image-extension', default='jpg', type=str,
-        help='This script ill process all files which match `image-path/*.{--image-extension}`'
-    )
-    parser.add_argument(
-        '--f16', action='store_true',
-        help='Store descriptors in fp16 (half precision) format'
-    )
+    parser.add_argument('--height', default=None, type=int, help='rescaled height (px). If unspecified, image is not resized in height dimension')
+    parser.add_argument('--width', default=None, type=int, help='rescaled width (px). If unspecified, image is not resized in width dimension')
+    parser.add_argument('--image-extension', default='jpg', type=str, help='This script ill process all files which match `image-path/*.{--image-extension}`')
+    parser.add_argument('--f16', action='store_true', help='Store descriptors in fp16 (half precision) format')
     parser.add_argument('--window', type=int, default=5, help='NMS window size')
-    parser.add_argument(
-        '--n', type=int, default=None,
-        help='Maximum number of features to extract. If unspecified, the number is not limited'
-    )
-    parser.add_argument(
-        '--desc-dim', type=int, default=128,
-        help='descriptor dimension. Needs to match the checkpoint value.'
-    )
-    parser.add_argument(
-        '--mode', choices=['nms', 'rng'], default='nms',
-        help=('Whether to extract features using the non-maxima suppresion mode or '
-              'through training-time grid sampling technique')
-    )
-    
+    parser.add_argument('--n', type=int, default=None, help='Maximum number of features to extract. If unspecified, the number is not limited')
+    parser.add_argument('--desc-dim', type=int, default=128, help='descriptor dimension. Needs to match the checkpoint value.')
+    parser.add_argument('--mode', choices=['nms', 'rng'], default='nms', help=('Whether to extract features using the nms mode or through training-time grid sampling technique'))
     default_model_path = os.path.split(os.path.abspath(__file__))[0] + '/depth-save.pth'
-    parser.add_argument(
-         '--model_path', type=str, default=default_model_path,
-        help="Path to the model's .pth save file"
-    )
-    parser.add_argument('--detection-scores', action='store_true')
-    
-    parser.add_argument(
-        'h5_path',
-        help=("Directory where keypoints.h5 and descriptors.h5 will be stored. This"
-              " will be created if it doesn't already exist.")
-    )
-    parser.add_argument(
-        'image_path',
-        help="Directory with images to be processed."
-    )
+    parser.add_argument('--model_path', type=str, default=default_model_path, help="Path to the model's .pth save file")
+    parser.add_argument('--detection-scores', action='store_true')    
+    parser.add_argument('h5_path', help=("Directory where keypoints.h5 and descriptors.h5 will be stored. This will be created if it doesn't already exist."))
+    parser.add_argument('image_path', help="Directory with images to be processed.")
     args = parser.parse_args()
+    
     DEV   = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     CPU   = torch.device('cpu')
+    
     dataset = SceneDataset(args.image_path, crop_size=(args.height, args.width))
     
     state_dict = torch.load(args.model_path, map_location='cpu')
@@ -250,6 +222,7 @@ if __name__ == '__main__':
         weights = state_dict['disk']
     else:
         raise KeyError('Incompatible weight file!')
+        
     model = DISK(window=8, desc_dim=args.desc_dim)
     model.load_state_dict(weights)
     model = model.to(DEV)
