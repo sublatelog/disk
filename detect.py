@@ -114,6 +114,8 @@ def extract(dataset, save_path):
     )
 
     if args.mode == 'nms':
+        
+        # partial():modelの関数features()に特定の引数を部分適用した関数を設定する
         extract = partial(
             model.features,
             kind='nms',
@@ -136,13 +138,12 @@ def extract(dataset, save_path):
 
         with torch.no_grad():
             try:
+                # 特徴量の抽出
                 batched_features = extract(bitmaps)
             except RuntimeError as e:
                 if 'U-Net failed' in str(e):
-                    msg = ('Please use input size which is multiple of 16 (or '
-                           'adjust the --height and --width flags to let this '
-                           'script rescale it automatically). This is because '
-                           'we internally use a U-Net with 4 downsampling '
+                    msg = ('Please use input size which is multiple of 16 (or adjust the --height and --width flags to let this '
+                           'script rescale it automatically). This is because we internally use a U-Net with 4 downsampling '
                            'steps, each by a factor of 2, therefore 2^4=16.')
 
                     raise RuntimeError(msg) from e
@@ -159,8 +160,10 @@ def extract(dataset, save_path):
             descriptors = features.desc.numpy()[mask]
             scores      = features.kp_logp.numpy()[mask]
 
+            # スコアの降順で並べる
             order = np.argsort(scores)[::-1]
 
+            # スコアの降順で取り出す
             keypoints   = keypoints[order]
             descriptors = descriptors[order]
             scores      = scores[order]
@@ -171,6 +174,7 @@ def extract(dataset, save_path):
             if args.f16:
                 descriptors = descriptors.astype(np.float16)
 
+            # datasetの作成
             keypoint_h5.create_dataset(image.fname, data=keypoints)
             descriptor_h5.create_dataset(image.fname, data=descriptors)
 
