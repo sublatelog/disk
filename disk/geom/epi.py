@@ -2,6 +2,8 @@ import torch
 
 from torch_dimcheck import dimchecked
 
+# reward > classify > asymmdist_from_imgs > ims2F > ims2E > cross_product_matrix
+# 行列積
 @dimchecked
 def cross_product_matrix(v: [3]) -> [3, 3]:
     ''' following
@@ -9,27 +11,40 @@ def cross_product_matrix(v: [3]) -> [3, 3]:
     '''
 
     return torch.tensor([
-        [    0, -v[2],  v[1]],
-        [ v[2],     0, -v[0]],
-        [-v[1],  v[0],     0]
-    ], dtype=v.dtype, device=v.device)
+                            [    0, -v[2],  v[1]],
+                            [ v[2],     0, -v[0]],
+                            [-v[1],  v[0],     0]
+                        ], dtype=v.dtype, device=v.device)
 
 @dimchecked
 def xy_to_xyw(xy: [2, 'N']) -> [3, 'N']:
     ones = torch.ones(1, xy.shape[1], device=xy.device, dtype=xy.dtype)
     return torch.cat([xy, ones], dim=0)
 
+
+# reward > classify > asymmdist_from_imgs > ims2F > ims2E
 @dimchecked
 def ims2E(im1, im2) -> [3, 3]:
-    R = im2.R @ im1.R.T
+    # im1の回転ベクトルをim2の回転ベクトルで回転させる
+    R = im2.R @ im1.R.T # img2.rotation x img1.rotation.T
+    
+    # im2と回転させたim1の差を取る
     T = im2.T - R @ im1.T
+    
+    # 行列積(3,3)を回転に適用
     return cross_product_matrix(T) @ R
 
+
+# reward > classify > asymmdist_from_imgs > ims2F
 @dimchecked
 def ims2F(im1, im2) -> [3, 3]:
+    
+    # E=行列積(3,3)を回転に適用
     E = ims2E(im1, im2)
+    
     return im2.K_inv.T @ E @ im1.K_inv
- 
+
+
 @dimchecked
 def symdimm(x1: [2, 'N'], x2: [2, 'M'], im1, im2) -> ['N', 'M']:
     x1n = im1.K_inv @ xy_to_xyw(x1)
@@ -49,6 +64,8 @@ def symdimm(x1: [2, 'N'], x2: [2, 'M'], im1, im2) -> ['N', 'M']:
     dist = x2_E_x1.pow(2) * norm
     return dist.T
 
+
+# reward > classify > asymmdist_from_imgs > ims2F > ims2E > cross_product_matrix > asymmdist
 @dimchecked
 def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     '''
@@ -64,10 +81,27 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     dist  = (Ft_x2 / norm).T @ x1_h
     return dist.T
 
+# reward > classify > asymmdist_from_imgs
 @dimchecked
 def asymmdist_from_imgs(x1: [2, 'N'], x2: [2, 'M'], im1, im2) -> ['N', 'M']:
+    
+    """
+    im1, im2
+    R = im2.R @ im1.R.T # img2.rotation x img1.rotation.T
+    T = im2.T - R @ im1.T
+    cpm = torch.tensor([
+                            [    0, -v[2],  v[1]],
+                            [ v[2],     0, -v[0]],
+                            [-v[1],  v[0],     0]
+                        ], dtype=v.dtype, device=v.device)
+     E = cpm @ R
+     F = im2.K_inv.T @ E @ im1.K_inv
+    
+    """
+    
     F = ims2F(im1, im2)
     return asymmdist(x1, x2, F)
+
 
 @dimchecked
 def p_asymmdist(x1: [2, 'N'], x2: [2, 'N'], F: [3, 3]) -> ['N']:
