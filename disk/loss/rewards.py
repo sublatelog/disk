@@ -7,8 +7,8 @@ from disk.geom.epi import asymmdist_from_imgs
 class EpipolarReward:
     def __init__(self, th=2., lm_tp=1., lm_fp=-0.25):
         self.th   = th
-        self.lm_tp = lm_tp
-        self.lm_fp = lm_fp
+        self.lm_tp = lm_tp # 1
+        self.lm_fp = lm_fp # -0.25 * ramp:割引率:0.1~
 
     @dimchecked
     def __call__(
