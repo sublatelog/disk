@@ -8,13 +8,14 @@ class Reinforce:
         self.reward = reward
         self.lm_kp   = lm_kp
 
+    # accumulate_grad > _loss_for_pair
     def _loss_for_pair(self, match_dist: MatchDistribution, img1: Image, img2: Image):
         elementwise_rewards = self.reward(
-            match_dist.features_1().kp,
-            match_dist.features_2().kp,
-            img1,
-            img2,
-        )
+                                          match_dist.features_1().kp,
+                                          match_dist.features_2().kp,
+                                          img1,
+                                          img2,
+                                         )
 
         with torch.no_grad():
             # we don't want to backpropagate through this
@@ -42,8 +43,7 @@ class Reinforce:
 
         n_keypoints = match_dist.shape[0] + match_dist.shape[1]
         exp_n_pairs = sample_p.sum().item()
-        exp_reward  = (sample_p * elementwise_rewards).sum().item() \
-                    + self.lm_kp * n_keypoints
+        exp_reward  = (sample_p * elementwise_rewards).sum().item() + self.lm_kp * n_keypoints
 
         stats = {
             'reward'     : exp_reward,
@@ -53,6 +53,7 @@ class Reinforce:
 
         return loss, stats
 
+    # reinforce > accumulate_grad
     def accumulate_grad(
         self,
         images  : NpArray[Image],    # [N_scenes, N_per_scene]
