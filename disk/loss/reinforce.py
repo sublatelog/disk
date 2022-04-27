@@ -5,6 +5,17 @@ from disk import MatchDistribution, Features, NpArray, Image
 
 class Reinforce:
     def __init__(self, reward, lm_kp):
+        
+        """
+        reward_class(
+            lm_tp=1.,
+            lm_fp=-0.25 * ramp,
+            th=1.5,
+        ),
+        lm_kp=-0.001 * ramp
+        """
+        
+        
         self.reward = reward
         self.lm_kp   = lm_kp
 
