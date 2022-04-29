@@ -160,6 +160,7 @@ class DISKDataset(LimitedConcatDataset):
         root_path, _ = P.split(json_path)
         scene_datasets = []        
         for scene in json_data:
+            print(scene)
             scene_datasets.append(SceneTuples(
                 json_data[scene],
                 crop_size,
