@@ -18,31 +18,40 @@ def select_on_last(values: [..., 'T'], indices: [...]) -> [...]:
     index into `values` which has equal shape as `indices` and then one extra
     dimension of size T.
     '''
+    
+    # torch.gather():指定した軸方向でindicsの値を取って並べる
     return torch.gather(
-        values,
-        -1,
-        indices[..., None]
-    ).squeeze(-1)
+                        values,
+                        -1, # 列方向
+                        indices[..., None] # インデックス
+                        ).squeeze(-1) # サイズ 1 の input すべての次元が削除されたテンソルを返します。
 
 @dimchecked
-def point_distribution(
-    logits: [..., 'T']
-) -> ([...], [...], [...]):
+def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
+    
     '''
     Implements the categorical proposal -> Bernoulli acceptance sampling
     scheme. Given a tensor of logits, performs samples on the last dimension,
+    
     returning
         a) the proposals
         b) a binary mask indicating which ones were accepted
         c) the logp-probability of (proposal and acceptance decision)
     '''
-
+    
+    # カテゴリ分布は、各カテゴリの確率を個別に指定して、K個の可能なカテゴリの1つをとることができる確率変数の可能な結果を表す離散確率分布です。
     proposal_dist = Categorical(logits=logits)
+    
+    # カテゴリ分布からサンプルを取得
     proposals     = proposal_dist.sample()
+    
+    # カテゴリ分布から取得したサンプルの確立を取得
     proposal_logp = proposal_dist.log_prob(proposals)
 
+    # 
     accept_logits = select_on_last(logits, proposals).squeeze(-1)
 
+    # ベルヌーイ分布とは、数学において、確率 p で 1 を、確率 q = 1 − p で 0 をとる、離散確率分布である。
     accept_dist    = Bernoulli(logits=accept_logits)
     accept_samples = accept_dist.sample()
     accept_logp    = accept_dist.log_prob(accept_samples)
