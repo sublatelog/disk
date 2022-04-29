@@ -76,7 +76,7 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     x1_h = xy_to_xyw(x1)
     x2_h = xy_to_xyw(x2)
 
-    Ft_x2 = F.T @ x2_h　# x2にFを適用
+    Ft_x2 = F.T @ x2_h # x2にFを適用
     norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
     dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を正規化してx1に適用
     return dist.T
