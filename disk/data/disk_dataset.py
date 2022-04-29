@@ -165,8 +165,8 @@ class DISKDataset(LimitedConcatDataset):
             
             if scene == "0001" or scene == "reichstag":
 #             if scene == "0001" or scene == "st_peters_square" or scene == "sacre_coeur" or scene == "reichstag":
-                if len(scene_datasets) > 3:
-                    break
+#                 if len(scene_datasets) > 3:
+#                     break
 
                 scene_datasets.append(SceneTuples(
                     json_data[scene],
