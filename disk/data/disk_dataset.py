@@ -169,6 +169,8 @@ class DISKDataset(LimitedConcatDataset):
                     root_path,
                     no_depth=no_depth
                 ))
+                
+        print(len(scene_datasets))
 
         super(DISKDataset, self).__init__(
             scene_datasets,
