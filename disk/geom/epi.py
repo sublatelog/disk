@@ -18,7 +18,7 @@ def cross_product_matrix(v: [3]) -> [3, 3]:
 
 @dimchecked
 def xy_to_xyw(xy: [2, 'N']) -> [3, 'N']:
-    ones = torch.ones(1, xy.shape[1], device=xy.device, dtype=xy.dtype)
+    ones = torch.ones(1, xy.shape[1], device=xy.device, dtype=xy.dtype) # 全て1の列を右端に追加
     return torch.cat([xy, ones], dim=0)
 
 
@@ -76,9 +76,9 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     x1_h = xy_to_xyw(x1)
     x2_h = xy_to_xyw(x2)
 
-    Ft_x2 = F.T @ x2_h
-    norm  = torch.norm(Ft_x2[:2], p=2, dim=0)
-    dist  = (Ft_x2 / norm).T @ x1_h
+    Ft_x2 = F.T @ x2_h　# x2にFを適用
+    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
+    dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を正規化してx1に適用
     return dist.T
 
 # reward > classify > asymmdist_from_imgs
@@ -89,14 +89,23 @@ def asymmdist_from_imgs(x1: [2, 'N'], x2: [2, 'M'], im1, im2) -> ['N', 'M']:
     im1, im2
     R = im2.R @ im1.R.T # img2.rotation x img1.rotation.T
     T = im2.T - R @ im1.T
-    cpm = torch.tensor([
-                            [    0, -v[2],  v[1]],
-                            [ v[2],     0, -v[0]],
-                            [-v[1],  v[0],     0]
-                        ], dtype=v.dtype, device=v.device)
-     E = cpm @ R
-     F = im2.K_inv.T @ E @ im1.K_inv
+    cross_product_matrix = torch.tensor([
+                                        [    0, -T[2],  T[1]],
+                                        [ T[2],     0, -T[0]],
+                                        [-T[1],  T[0],     0]
+                                        ])
+                        
+    E = cross_product_matrix @ R
+    F = im2.K_inv.T @ E @ im1.K_inv
+     
+    x1_h = xy_to_xyw(x1) # 全て1の列を右端に追加
+    x2_h = xy_to_xyw(x2) # 全て1の列を右端に追加
+
+    Ft_x2 = F.T @ x2_h　# x2にFを適用
+    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
+    dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を正規化してx1に適用
     
+    return dist.T
     """
     
     F = ims2F(im1, im2)
