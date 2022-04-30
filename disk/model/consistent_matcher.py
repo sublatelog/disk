@@ -6,6 +6,7 @@ from torch_dimcheck import dimchecked
 from disk import Features, NpArray, MatchDistribution
 from disk.geom import distance_matrix
 
+# train > loss_fn.accumulate_grad > ConsistentMatcher_match_pair > ConsistentMatchDistribution
 class ConsistentMatchDistribution(MatchDistribution):
     def __init__(
         self,
@@ -17,11 +18,23 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._features_2 = features_2
         self.inverse_T = inverse_T
 
+        # distance_matrix(): 1.414213 * (1. - fs1 @ fs2.T).clamp(min=1e-6).sqrt()
         distances = distance_matrix(
             self.features_1().desc,
             self.features_2().desc,
         )
+        
+        print("distances")
+        print(distances)
+        
+        
+        print("inverse_T")
+        print(inverse_T)
+        
         affinity = -inverse_T * distances
+        
+        print("affinity")
+        print(affinity)
 
         self._cat_I = Categorical(logits=affinity)
         self._cat_T = Categorical(logits=affinity.T)
@@ -79,7 +92,6 @@ class ConsistentMatchDistribution(MatchDistribution):
     def features_2(self) -> Features:
         return self._features_2
 
-# train > loss_fn.accumulate_grad > ConsistentMatcher > 
 class ConsistentMatcher(torch.nn.Module):
     def __init__(self, inverse_T=1.):
         super(ConsistentMatcher, self).__init__()
@@ -88,6 +100,5 @@ class ConsistentMatcher(torch.nn.Module):
     def extra_repr(self):
         return f'inverse_T={self.inverse_T.item()}'
 
-    # train > loss_fn.accumulate_grad > ConsistentMatcher > match_pair
     def match_pair(self, features_1: Features, features_2: Features):
         return ConsistentMatchDistribution(features_1, features_2, self.inverse_T)
