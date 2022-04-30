@@ -87,9 +87,10 @@ class Reinforce:
         assert images.shape == features.shape
 
         N_scenes, N_per_scene = images.shape
-        
-        print("N_scenes, N_per_scene")
-        print(N_scenes, N_per_scene)
+        """
+        N_scenes, N_per_scene
+        1 3
+        """
         
         
         N_decisions           = ((N_per_scene - 1) * N_per_scene) // 2
