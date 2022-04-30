@@ -40,15 +40,32 @@ def xy_to_xyw(xy: [2, 'N']) -> [3, 'N']:
 # reward > classify > asymmdist_from_imgs > ims2F > ims2E
 @dimchecked
 def ims2E(im1, im2) -> [3, 3]:
-    print("im2.R")
-    print(im2.R)
     
-    print("im1.R")
-    print(im1.R)
-    print(im1.R.T)
+    """
+            
+    im1.R
+    tensor([[-0.9271, -0.0076, -0.3747],
+            [ 0.0481,  0.9891, -0.1390],
+            [ 0.3716, -0.1469, -0.9167]], device='cuda:0')
+            
+    im2.R
+    tensor([[-0.9289, -0.0248, -0.3694],
+            [ 0.1506,  0.8862, -0.4382],
+            [ 0.3383, -0.4627, -0.8194]], device='cuda:0')
+            
+    im1.R.T        
+    tensor([[-0.9271,  0.0481,  0.3716],
+            [-0.0076,  0.9891, -0.1469],
+            [-0.3747, -0.1390, -0.9167]], device='cuda:0')
+            
+    im2.R @ im1.R.T 
+    1行目x1列目、2行目x1列目、3行目x1列目
+    1行目x2列目、2行目x2列目、3行目x2列目
     
-    print("im2.R @ im1.R.T")
-    print(im2.R @ im1.R.T)
+    tensor([[ 0.9998, -0.0178, -0.0029],
+            [ 0.0178,  0.9447,  0.3275],
+            [-0.0031, -0.3275,  0.9448]], device='cuda:0')
+    """
     
     # im1の回転ベクトルをim2の回転ベクトルで回転させる
     R = im2.R @ im1.R.T # img2.rotation x img1.rotation.T
@@ -100,6 +117,15 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
 
     x1_h = xy_to_xyw(x1)
     x2_h = xy_to_xyw(x2)
+    
+    print("F")
+    print(F)
+    
+    print("Ft_x2")
+    print(Ft_x2)
+    
+    print("norm")
+    print(norm)
 
     Ft_x2 = F.T @ x2_h # x2にFを適用
     norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
