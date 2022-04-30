@@ -24,17 +24,40 @@ class ConsistentMatchDistribution(MatchDistribution):
             self.features_2().desc,
         )
         
+        """
+        distances
+        tensor([[0.8001, 0.9821, 1.0317,  ..., 1.5377, 1.5198, 1.4498],
+                [1.2176, 1.1543, 1.1861,  ..., 1.4920, 1.4388, 1.3953],
+                [0.9011, 0.7790, 0.8318,  ..., 1.4034, 1.3502, 1.3481],
+                ...,
+                [1.3575, 1.2276, 1.1596,  ..., 0.7947, 0.5773, 1.0236],
+                [1.3981, 1.2601, 1.2054,  ..., 0.8923, 0.7021, 1.0499],
+                [1.3091, 1.1891, 1.1679,  ..., 0.8867, 0.6355, 1.0838]],
+               device='cuda:0', grad_fn=<MulBackward0>)
+        """
+       
         print("distances")
-        print(distances)
+        print(distances.size())
         
-        
-        print("inverse_T")
-        print(inverse_T)
+        """
+        inverse_T
+        tensor(15., device='cuda:0')
+        """
         
         affinity = -inverse_T * distances
-        
+        """
+        affinity
+        tensor([[-12.0015, -14.7314, -15.4759,  ..., -23.0651, -22.7974, -21.7463],
+                [-18.2635, -17.3140, -17.7920,  ..., -22.3796, -21.5814, -20.9297],
+                [-13.5168, -11.6845, -12.4776,  ..., -21.0507, -20.2523, -20.2213],
+                ...,
+                [-20.3618, -18.4133, -17.3935,  ..., -11.9206,  -8.6591, -15.3540],
+                [-20.9710, -18.9022, -18.0805,  ..., -13.3847, -10.5312, -15.7485],
+                [-19.6366, -17.8368, -17.5178,  ..., -13.3001,  -9.5326, -16.2570]],
+               device='cuda:0', grad_fn=<MulBackward0>)
+        """
         print("affinity")
-        print(affinity)
+        print(affinity.size())
 
         self._cat_I = Categorical(logits=affinity)
         self._cat_T = Categorical(logits=affinity.T)
