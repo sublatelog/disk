@@ -125,7 +125,7 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     print(Ft_x2)
     
     print("norm")
-    print(norm)
+    print(torch.norm(Ft_x2[:2], p=2, dim=0))
 
     Ft_x2 = F.T @ x2_h # x2にFを適用
     norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
