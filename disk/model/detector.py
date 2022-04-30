@@ -39,23 +39,55 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
         c) the logp-probability of (proposal and acceptance decision)
     '''
     
+    print("logits")
+    print(logits)
+    
     # カテゴリ分布は、各カテゴリの確率を個別に指定して、K個の可能なカテゴリの1つをとることができる確率変数の可能な結果を表す離散確率分布です。
     proposal_dist = Categorical(logits=logits)
+    
+    
+    print("proposal_dist")
+    print(proposal_dist)
     
     # カテゴリ分布からサンプルを取得
     proposals     = proposal_dist.sample()
     
+    
+    print("proposals")
+    print(proposals)
+    
     # カテゴリ分布から取得したサンプルの確立を取得
     proposal_logp = proposal_dist.log_prob(proposals)
+    
+    
+    print("proposal_logp")
+    print(proposal_logp)
 
     # 
     accept_logits = select_on_last(logits, proposals).squeeze(-1)
+    
+    
+    
+    print("accept_logits")
+    print(accept_logits)
 
     # ベルヌーイ分布とは、数学において、確率 p で 1 を、確率 q = 1 − p で 0 をとる、離散確率分布である。
     accept_dist    = Bernoulli(logits=accept_logits)
+    
+    print("accept_dist")
+    print(accept_dist)
+    
+    
     accept_samples = accept_dist.sample()
+    print("accept_samples")
+    print(accept_samples)
     accept_logp    = accept_dist.log_prob(accept_samples)
+    
+    print("accept_logp")
+    print(accept_logp)
     accept_mask    = accept_samples == 1.
+    print("accept_mask")
+    print(accept_mask)
 
     logp = proposal_logp + accept_logp
 
@@ -80,9 +112,19 @@ class Keypoints:
         given by `self.xys`
         '''
         x, y = self.xys.T
+        
+        
+        print("descriptors[:, y, x].T")
+        print(descriptors[:, y, x].T)
 
         desc = descriptors[:, y, x].T
         desc = F.normalize(desc, dim=-1)
+        print("desc")
+        print(desc)
+        
+        
+        print("Features(self.xys.to(torch.float32), desc, self.logp)")
+        print(Features(self.xys.to(torch.float32), desc, self.logp))
 
         return Features(self.xys.to(torch.float32), desc, self.logp)
 
@@ -102,6 +144,17 @@ class Detector:
 
         assert heatmap.shape[2] % v == 0
         assert heatmap.shape[3] % v == 0
+        
+        
+        print("heatmap.unfold(2, v, v)")
+        print(heatmap.unfold(2, v, v))
+        
+        
+        print("heatmap.unfold(2, v, v).unfold(3, v, v)")
+        print(heatmap.unfold(2, v, v).unfold(3, v, v))
+        
+        print("heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v)")
+        print(heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v))
 
         return heatmap.unfold(2, v, v) \
                       .unfold(3, v, v) \
@@ -118,10 +171,20 @@ class Detector:
 
         assert H % v == 0
         assert W % v == 0
+        
+        
+        
+        print("heatmap")
+        print(heatmap)
 
         # tile the heatmap into [window x window] tiles and pass it to
         # the categorical distribution.
         heatmap_tiled = self._tile(heatmap).squeeze(1)
+        
+        
+        print("heatmap_tiled")
+        print(heatmap_tiled)
+        
         proposals, accept_mask, logp = point_distribution(heatmap_tiled)
 
         # create a grid of xy coordinates and tile it as well
@@ -129,7 +192,17 @@ class Detector:
             torch.arange(H, device=dev),
             torch.arange(W, device=dev),
         )[::-1], dim=0).unsqueeze(0)
+        
+        
+        
+        print("cgrid")
+        print(cgrid)
+        
         cgrid_tiled = self._tile(cgrid)
+        
+        
+        print("cgrid_tiled")
+        print(cgrid_tiled)
 
         # extract xy coordinates from cgrid according to indices sampled
         # before
