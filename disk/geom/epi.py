@@ -10,17 +10,20 @@ def cross_product_matrix(v: [3]) -> [3, 3]:
         en.wikipedia.org/wiki/Cross_product#Conversion_to_matrix_multiplication
     '''
 
-    print("cross_product_matrix")
-    print(v)
+    # V
+    # tensor([0.3014, 1.1819, 7.4409], device='cuda:0')
     
     v2 = torch.tensor([
                             [    0, -v[2],  v[1]],
                             [ v[2],     0, -v[0]],
                             [-v[1],  v[0],     0]
                         ], dtype=v.dtype, device=v.device)
-    
-    print("v2")
-    print(v2)
+    """
+    v2
+    tensor([[ 0.0000, -7.4409,  1.1819],
+            [ 7.4409,  0.0000, -0.3014],
+            [-1.1819,  0.3014,  0.0000]], device='cuda:0')
+    """
     
     return torch.tensor([
                             [    0, -v[2],  v[1]],
@@ -37,6 +40,16 @@ def xy_to_xyw(xy: [2, 'N']) -> [3, 'N']:
 # reward > classify > asymmdist_from_imgs > ims2F > ims2E
 @dimchecked
 def ims2E(im1, im2) -> [3, 3]:
+    print("im2.R")
+    print(im2.R)
+    
+    print("im1.R")
+    print(im1.R)
+    print(im1.R.T)
+    
+    print("im2.R @ im1.R.T")
+    print(im2.R @ im1.R.T)
+    
     # im1の回転ベクトルをim2の回転ベクトルで回転させる
     R = im2.R @ im1.R.T # img2.rotation x img1.rotation.T
     
