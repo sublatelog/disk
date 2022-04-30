@@ -41,6 +41,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     
     """
     logits
+    torch.Size([3, 96, 96, 64])
     tensor([[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ...,  4.8296e-01, 6.0503e-01,  6.6835e-01],
               [ 5.9942e-02,  1.5390e-01,  1.3652e-01,  ...,  6.1927e-01, 6.7140e-01,  7.0280e-01],
               [ 7.9184e-02,  1.0621e-01,  1.6106e-01,  ...,  8.9157e-01, 9.1781e-01,  9.2466e-01],
@@ -50,9 +51,6 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
               [-1.0751e-01, -9.8728e-02, -8.1865e-02,  ...,  1.5102e-01, -1.8443e-01,  1.0855e-01]],
     """
     
-    
-    print("logits")
-    print(logits.size())
     
     # カテゴリ分布は、各カテゴリの確率を個別に指定して、K個の可能なカテゴリの1つをとることができる確率変数の可能な結果を表す離散確率分布です。
     proposal_dist = Categorical(logits=logits)
@@ -66,6 +64,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     proposals     = proposal_dist.sample()
     """
     proposals
+    torch.Size([3, 96, 96])
     tensor([[[25, 25,  4,  ..., 49,  3, 18],
              [62, 51,  7,  ..., 47, 36, 46],
              [34, 11, 57,  ..., 37, 36, 39],
@@ -90,15 +89,14 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [40, 29, 55,  ...,  0, 59, 26],
              [12, 58, 25,  ..., 41,  2,  8]]], device='cuda:0')
     """
-    
-    print("proposals")
-    print(proposals.size())
+
     
     # カテゴリ分布から取得したサンプルの確立を取得
     proposal_logp = proposal_dist.log_prob(proposals)
     
     """
     proposal_logp
+    torch.Size([3, 96, 96])
     tensor([[[-4.6688, -4.2400, -4.8154,  ..., -4.3598, -4.5061, -3.6803],
              [-4.2810, -4.0045, -4.0672,  ..., -4.0765, -4.0340, -4.1497],
              [-3.8270, -4.1134, -4.1749,  ..., -4.1560, -4.1804, -4.0086],
@@ -124,14 +122,14 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [-4.1318, -3.8697, -4.2375,  ..., -4.1077, -4.3045, -4.4504]]],
            device='cuda:0', grad_fn=<SqueezeBackward1>)
     """
-    print("proposal_logp")
-    print(proposal_logp.size())
+
 
     # 
     accept_logits = select_on_last(logits, proposals).squeeze(-1)
     
     """
     accept_logits
+    torch.Size([3, 96, 96])
     tensor([[[ 2.1563e-01,  7.7110e-01,  2.6007e-01,  ...,  2.7901e-01, 1.5811e-01,  7.0802e-01],
              [ 3.0520e-01,  5.9063e-01,  5.6615e-01,  ...,  2.9011e-01, 3.4100e-01, -7.7148e-02],
              [ 8.3748e-01,  5.7021e-01,  5.7831e-01,  ...,  1.3027e-01, 9.3538e-02,  6.3673e-02],
@@ -140,9 +138,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [-1.3217e-01, -5.0198e-01, -5.8203e-01,  ..., -4.2708e-01, -5.2666e-01, -5.8571e-01],
              [-3.0306e-01, -6.0801e-01, -5.4103e-01,  ..., -6.3684e-01, -5.6356e-01, -6.0317e-01]],
     """
-    
-    print("accept_logits")
-    print(accept_logits.size())
+
 
     # ベルヌーイ分布とは、数学において、確率 p で 1 を、確率 q = 1 − p で 0 をとる、離散確率分布である。
     accept_dist    = Bernoulli(logits=accept_logits)
@@ -154,6 +150,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     accept_samples = accept_dist.sample()
     """
     accept_samples
+    torch.Size([3, 96, 96])
     tensor([[[0., 0., 1.,  ..., 1., 1., 1.],
              [1., 1., 0.,  ..., 0., 0., 1.],
              [1., 0., 1.,  ..., 1., 0., 1.],
@@ -179,14 +176,12 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [1., 0., 1.,  ..., 0., 0., 0.]]], device='cuda:0')
     """
     
-    print("accept_samples")
-    print(accept_samples.size())
-    
     
     
     accept_logp    = accept_dist.log_prob(accept_samples)
     """
     accept_logp
+    torch.Size([3, 96, 96])
     tensor([[[-0.8068, -1.1512, -0.5715,  ..., -0.5633, -0.6172, -0.4005],
              [-0.5521, -0.4408, -1.0158,  ..., -0.8487, -0.8781, -0.7325],
              [-0.3596, -1.0184, -0.4452,  ..., -0.6301, -0.7410, -0.6618],
@@ -214,13 +209,10 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     """
     
     
-    print("accept_logp")
-    print(accept_logp.size())
-    
-    
     accept_mask    = accept_samples == 1.
     """
     accept_mask
+    torch.Size([3, 96, 96])
     tensor([[[False, False,  True,  ...,  True,  True,  True],
              [ True,  True, False,  ..., False, False,  True],
              [ True, False,  True,  ...,  True, False,  True],
@@ -245,8 +237,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [False, False, False,  ...,  True, False, False],
              [ True, False,  True,  ..., False, False, False]]], device='cuda:0')
     """
-    print("accept_mask")
-    print(accept_mask.size())
+
 
     logp = proposal_logp + accept_logp
 
@@ -319,7 +310,8 @@ class Detector:
         assert heatmap.shape[3] % v == 0
         
         """
-        heatmap.unfold(2, v, v)
+        heatmap.unfold(2, v, v) 
+        torch.Size([3, 1, 96, 768, 8])
         tensor([[[[[-3.1139e-01,  4.6624e-01,  8.7289e-01,  ...,  2.0654e-01,5.5258e-01,  7.5843e-01],
            [-6.0347e-01,  6.6675e-02,  6.9844e-01,  ..., -3.6775e-01, -7.0950e-02,  1.6722e-01],
            [ 8.3655e-02,  7.3244e-01,  1.6664e+00,  ...,  9.3245e-01, 1.0129e+00,  1.0526e+00],
@@ -328,11 +320,11 @@ class Detector:
            [-8.8576e-02,  6.8541e-02,  3.0978e-01,  ..., -2.0946e-02, -1.2726e-01, -1.8443e-01],
            [ 3.6482e-01,  4.2932e-01,  4.1033e-01,  ...,  2.1966e-01, 1.6747e-01,  1.0855e-01]],        
         """
-        print("heatmap.unfold(2, v, v)")
-        print(heatmap.unfold(2, v, v).size())
+  
         
         """
-        heatmap.unfold(2, v, v).unfold(3, v, v)
+        heatmap.unfold(2, v, v).unfold(3, v, v) 
+        torch.Size([3, 1, 96, 96, 8, 8])
         tensor([[[[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ..., -2.3842e-01, -2.8693e-01, -1.3590e-01],
                     [ 4.6624e-01,  6.6675e-02,  7.3244e-01,  ...,  4.4079e-01, 4.7519e-01,  6.3573e-01],
                     [ 8.7289e-01,  6.9844e-01,  1.6664e+00,  ...,  1.0941e+00, 1.1578e+00,  1.2043e+00],
@@ -346,11 +338,10 @@ class Detector:
                     [ 1.2997e+00,  1.3750e+00,  1.4528e+00,  ...,  1.3993e+00, 1.3908e+00,  1.4020e+00],
                     ...,
         """
-        
-        print("heatmap.unfold(2, v, v).unfold(3, v, v)")
-        print(heatmap.unfold(2, v, v).unfold(3, v, v).size())
+
         """
-        heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v)
+        heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v) 
+        torch.Size([3, 1, 96, 96, 64])
         tensor([[[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ...,  4.8296e-01, 6.0503e-01,  6.6835e-01],
                    [ 5.9942e-02,  1.5390e-01,  1.3652e-01,  ...,  6.1927e-01, 6.7140e-01,  7.0280e-01],
                    [ 7.9184e-02,  1.0621e-01,  1.6106e-01,  ...,  8.9157e-01, 9.1781e-01,  9.2466e-01],
@@ -384,6 +375,7 @@ class Detector:
         assert W % v == 0
         """
         heatmap
+        torch.Size([3, 1, 768, 768])        
         tensor([[[[-0.3114, -0.6035,  0.0837,  ...,  0.0402, -0.0886,  0.3648],
                   [ 0.4662,  0.0667,  0.7324,  ...,  0.4677,  0.0685,  0.4293],
                   [ 0.8729,  0.6984,  1.6664,  ...,  0.7820,  0.3098,  0.4103],
@@ -411,9 +403,6 @@ class Detector:
                   [-0.1747, -0.1406, -0.1976,  ..., -0.2057, -0.0943, -0.1603]]]],
                device='cuda:0', grad_fn=<SliceBackward0>)
         """
-        
-        print("heatmap")
-        print(heatmap.size())
 
         # tile the heatmap into [window x window] tiles and pass it to
         # the categorical distribution.
@@ -421,6 +410,7 @@ class Detector:
         
         """
         heatmap_tiled
+        torch.Size([3, 96, 96, 64])
         tensor([[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ...,  4.8296e-01, 6.0503e-01,  6.6835e-01],
                   [ 5.9942e-02,  1.5390e-01,  1.3652e-01,  ...,  6.1927e-01, 6.7140e-01,  7.0280e-01],
                   [ 7.9184e-02,  1.0621e-01,  1.6106e-01,  ...,  8.9157e-01, 9.1781e-01,  9.2466e-01],
@@ -429,9 +419,7 @@ class Detector:
                   [ 1.7556e-01,  1.5038e-01,  1.3575e-01,  ...,  3.7192e-01, 2.4402e-01,  1.6215e-02],
                   [-1.0751e-01, -9.8728e-02, -8.1865e-02,  ...,  1.5102e-01, -1.8443e-01,  1.0855e-01]],
         """
-        
-        print("heatmap_tiled")
-        print(heatmap_tiled.size())
+
         
         proposals, accept_mask, logp = point_distribution(heatmap_tiled)
 
@@ -443,6 +431,7 @@ class Detector:
         
         """
         cgrid
+        torch.Size([1, 2, 768, 768])
         tensor([[[[  0,   1,   2,  ..., 765, 766, 767],
                   [  0,   1,   2,  ..., 765, 766, 767],
                   [  0,   1,   2,  ..., 765, 766, 767],
@@ -459,14 +448,31 @@ class Detector:
                   [766, 766, 766,  ..., 766, 766, 766],
                   [767, 767, 767,  ..., 767, 767, 767]]]], device='cuda:0')
         """
-        print("cgrid")
-        print(cgrid.size())
+
         
         cgrid_tiled = self._tile(cgrid)
-        
+        """
+        cgrid_tiled
+        tensor([[[[[  0,   1,   2,  ...,   5,   6,   7],
+                   [  8,   9,  10,  ...,  13,  14,  15],
+                   [ 16,  17,  18,  ...,  21,  22,  23],
+                   ...,
+                   [744, 745, 746,  ..., 749, 750, 751],
+                   [752, 753, 754,  ..., 757, 758, 759],
+                   [760, 761, 762,  ..., 765, 766, 767]],
+
+                  [[  0,   1,   2,  ...,   5,   6,   7],
+                   [  8,   9,  10,  ...,  13,  14,  15],
+                   [ 16,  17,  18,  ...,  21,  22,  23],
+                   ...,
+                   [744, 745, 746,  ..., 749, 750, 751],
+                   [752, 753, 754,  ..., 757, 758, 759],
+                   [760, 761, 762,  ..., 765, 766, 767]],
+
+        """
         
         print("cgrid_tiled")
-        print(cgrid_tiled)
+        print(cgrid_tiled.size())
 
         # extract xy coordinates from cgrid according to indices sampled
         # before
