@@ -61,10 +61,11 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     """
     
     # カテゴリ分布からサンプルを取得
+    # tile内64個の数値から１つをsampleとしてindexを設定
     proposals     = proposal_dist.sample()
     """
     proposals
-    torch.Size([3, 96, 96])
+    torch.Size([3, 96, 96])：0~64
     tensor([[[25, 25,  4,  ..., 49,  3, 18],
              [62, 51,  7,  ..., 47, 36, 46],
              [34, 11, 57,  ..., 37, 36, 39],
@@ -76,7 +77,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     """
 
     
-    # カテゴリ分布から取得したサンプルの確立を取得
+    # カテゴリ分布から取得したサンプルのindexから評価確率密度を取得：どれくらいの確立でそのindexが選ばれるか
     proposal_logp = proposal_dist.log_prob(proposals)
     
     """
@@ -94,7 +95,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     """
 
 
-    # 
+    # tile内で選ばれた位置の要素の値を取得する
     accept_logits = select_on_last(logits, proposals).squeeze(-1)
     
     """
@@ -111,12 +112,14 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
 
 
     # ベルヌーイ分布とは、数学において、確率 p で 1 を、確率 q = 1 − p で 0 をとる、離散確率分布である。
+    # categoricalで選んだ位置の値からベルヌーイ分布を作成
     accept_dist    = Bernoulli(logits=accept_logits)
     """
     accept_dist
     Bernoulli(logits: torch.Size([3, 96, 96]))
     """
     
+    # ベルヌーイ分布から一定の位置を選択「1」を選択
     accept_samples = accept_dist.sample()
     """
     accept_samples
@@ -132,7 +135,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
     """
     
     
-    
+    # ベルヌーイ分布から選択した位置の評価確率密度を取得：どれくらいの確立でそのindexが選ばれるか
     accept_logp    = accept_dist.log_prob(accept_samples)
     """
     accept_logp
@@ -147,7 +150,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
            device='cuda:0', grad_fn=<NegBackward0>)
     """
     
-    
+    # ベルヌーイ分布から選択「1」の場所からmaskを作成
     accept_mask    = accept_samples == 1.
     """
     accept_mask
@@ -162,7 +165,7 @@ def point_distribution(logits: [..., 'T']) -> ([...], [...], [...]):
              [ True, False,  True,  ..., False, False, False]]], device='cuda:0')
     """
 
-
+    # categorical分布とBernoulli分布の評価確率密度を合計
     logp = proposal_logp + accept_logp
 
     return proposals, accept_mask, logp
@@ -227,15 +230,18 @@ class Detector:
         v==self.window. The tiles are flattened, resulting in the last
         dimension of the output T == v * v.
         '''
-        v = self.window
+        v = self.window # window=8
         b, c, h, w = heatmap.shape
 
         assert heatmap.shape[2] % v == 0
         assert heatmap.shape[3] % v == 0
         
         """
+        heatmap
+        torch.Size([3, 1, 768, 768]) 
+        
         heatmap.unfold(2, v, v) 
-        torch.Size([3, 1, 96, 768, 8])
+        torch.Size([3, 1, 96, 768, 8]) < torch.Size([3, 1, 768, 768]) 
         tensor([[[[[-3.1139e-01,  4.6624e-01,  8.7289e-01,  ...,  2.0654e-01,5.5258e-01,  7.5843e-01],
                    [-6.0347e-01,  6.6675e-02,  6.9844e-01,  ..., -3.6775e-01, -7.0950e-02,  1.6722e-01],
                    [ 8.3655e-02,  7.3244e-01,  1.6664e+00,  ...,  9.3245e-01, 1.0129e+00,  1.0526e+00],
@@ -248,7 +254,7 @@ class Detector:
         
         """
         heatmap.unfold(2, v, v).unfold(3, v, v) 
-        torch.Size([3, 1, 96, 96, 8, 8])
+        torch.Size([3, 1, 96, 96, 8, 8]) < torch.Size([3, 1, 96, 768, 8])
         tensor([[[[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ..., -2.3842e-01, -2.8693e-01, -1.3590e-01],
                     [ 4.6624e-01,  6.6675e-02,  7.3244e-01,  ...,  4.4079e-01, 4.7519e-01,  6.3573e-01],
                     [ 8.7289e-01,  6.9844e-01,  1.6664e+00,  ...,  1.0941e+00, 1.1578e+00,  1.2043e+00],
@@ -261,7 +267,7 @@ class Detector:
 
         """
         heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v) 
-        torch.Size([3, 1, 96, 96, 64])
+        torch.Size([3, 1, 96, 96, 64]) < torch.Size([3, 1, 96, 96, 8, 8])
         torch.Size([1, 2, 96, 96, 64])
         tensor([[[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ...,  4.8296e-01, 6.0503e-01,  6.6835e-01],
                    [ 5.9942e-02,  1.5390e-01,  1.3652e-01,  ...,  6.1927e-01, 6.7140e-01,  7.0280e-01],
@@ -272,7 +278,8 @@ class Detector:
                    [ 4.4098e-01,  4.8455e-01,  4.8971e-01,  ...,  6.5191e-01, 6.1169e-01,  5.7264e-01],
                    ...,
         """
-
+        
+        # 行、列でwindowに区切ったtileを横に並べて
         return heatmap.unfold(2, v, v) \
                       .unfold(3, v, v) \
                       .reshape(b, c, h // v, w // v, v*v)
@@ -318,14 +325,16 @@ class Detector:
                   [-1.0751e-01, -9.8728e-02, -8.1865e-02,  ...,  1.5102e-01, -1.8443e-01,  1.0855e-01]],
         """
 
-        
+        # categorical分布、Bernoulliのmask、categorical分布とBernoulli分布の評価確率密度の合計
         proposals, accept_mask, logp = point_distribution(heatmap_tiled)
 
-        # create a grid of xy coordinates and tile it as well
-        cgrid = torch.stack(torch.meshgrid(
-            torch.arange(H, device=dev),
-            torch.arange(W, device=dev),
-        )[::-1], dim=0).unsqueeze(0)
+        # 座標を作成。create a grid of xy coordinates and tile it as well
+        cgrid = torch.stack(
+                            torch.meshgrid(
+                                            torch.arange(H, device=dev),
+                                            torch.arange(W, device=dev),
+                                          )[::-1], dim=0
+                           ).unsqueeze(0)
         
         """
         cgrid
@@ -343,7 +352,7 @@ class Detector:
                   [767, 767, 767,  ..., 767, 767, 767]]]], device='cuda:0')
         """
 
-        
+        # 座標をtileに分割
         cgrid_tiled = self._tile(cgrid)
         """
         cgrid_tiled
@@ -366,20 +375,25 @@ class Detector:
 
         # extract xy coordinates from cgrid according to indices sampled
         # before
+        # categorical分布のindexを座標に変換
         xys = select_on_last(
-            self._tile(cgrid).repeat(B, 1, 1, 1, 1),
-            # unsqueeze and repeat on the (xy) dimension to grab
-            # both components from the grid
-            proposals.unsqueeze(1).repeat(1, 2, 1, 1)
-        ).permute(0, 2, 3, 1) # -> bhw2
+                            self._tile(cgrid).repeat(B, 1, 1, 1, 1), # バッチに合わせてtileシートの枚数を増やす
+                            # unsqueeze and repeat on the (xy) dimension to grab
+                            # both components from the grid
+                            proposals.unsqueeze(1).repeat(1, 2, 1, 1) # categorical分布のindex
+                            ).permute(0, 2, 3, 1) # -> bhw2
          
         keypoints = []
+        
+        # batchの数だけmaskで選択された座標と確率をkeypointsに設定
         for i in range(B):
-            mask = accept_mask[i]
-            keypoints.append(Keypoints(
-                xys[i][mask],
-                logp[i][mask],
-            ))
+            mask = accept_mask[i] # 
+            keypoints.append(
+                            Keypoints(
+                                      xys[i][mask], # Bernoulliのmaskで選択した座標
+                                      logp[i][mask], # categoricalとBernoulli合計した確率
+                                      )
+                            )
 
         return np.array(keypoints, dtype=object)
 
