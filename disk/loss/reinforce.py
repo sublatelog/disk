@@ -87,6 +87,11 @@ class Reinforce:
         assert images.shape == features.shape
 
         N_scenes, N_per_scene = images.shape
+        
+        print("N_scenes, N_per_scene")
+        print(N_scenes, N_per_scene)
+        
+        
         N_decisions           = ((N_per_scene - 1) * N_per_scene) // 2
 
         stats = np.zeros((N_scenes, N_decisions), dtype=object)
@@ -96,6 +101,8 @@ class Reinforce:
         # mark them as .requires_grad==True, so they will accumulate the
         # gradients across pairwise matches.
         detached_features = np.zeros(features.shape, dtype=object)
+        
+        # 微分外featuresにfeaturesをコピー
         for i in range(features.size):
             detached_features.flat[i] = features.flat[i].detached_and_grad_()
 
