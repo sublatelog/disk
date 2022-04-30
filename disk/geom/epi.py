@@ -119,14 +119,21 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
     x2_h = xy_to_xyw(x2)
     
     
-    print("x2_h")
-    print(x2_h)
+    
     
     """
+    
+    
     F
     tensor([[-2.7759e-09,  1.7227e-07, -8.7349e-05],
             [-1.9068e-07,  3.5481e-09,  3.7626e-04],
             [ 5.6962e-05, -2.1005e-04,  2.4813e-04]], device='cuda:0')
+            
+    x2_h
+    tensor([[  4.,  27.,  41.,  ..., 740., 748., 766.],
+            [  5.,   0.,   4.,  ..., 766., 763., 766.],
+            [  1.,   1.,   1.,  ...,   1.,   1.,   1.]], device='cuda:0')
+            
     """    
 
     Ft_x2 = F.T @ x2_h # x2にFを適用
@@ -138,15 +145,21 @@ def asymmdist(x1: [2, 'N'], x2: [2, 'M'], F: [3, 3]) -> ['N', 'M']:
             [-1.8862e-04,  2.9509e-04, -1.9692e-03,  ...,  2.2325e-01, 2.2394e-01,  2.2321e-01]], device='cuda:0')
     """
     
-    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
+    # 行方向のl2ノルム, p=L:sum(abs(x)**L)**(1./L)
+    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 行方向のl2ノルム
     
     """
     norm
     tensor([0.0002, 0.0002, 0.0002,  ..., 0.0001, 0.0001, 0.0001], device='cuda:0')
     """
     
+
     
     dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を正規化してx1に適用
+    
+    print("dist")
+    print(dist)
+    
     return dist.T
 
 # reward > classify > asymmdist_from_imgs
@@ -170,8 +183,8 @@ def asymmdist_from_imgs(x1: [2, 'N'], x2: [2, 'M'], im1, im2) -> ['N', 'M']:
     x2_h = xy_to_xyw(x2) # 全て1の列を右端に追加
 
     Ft_x2 = F.T @ x2_h　# x2にFを適用
-    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 正規化
-    dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を正規化してx1に適用
+    norm  = torch.norm(Ft_x2[:2], p=2, dim=0) # 行方向のl2ノルム
+    dist  = (Ft_x2 / norm).T @ x1_h # Fを適用したx2を行方向のl2ノルムしてx1に適用
     
     return dist.T
     """
