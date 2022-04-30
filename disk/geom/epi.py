@@ -10,6 +10,18 @@ def cross_product_matrix(v: [3]) -> [3, 3]:
         en.wikipedia.org/wiki/Cross_product#Conversion_to_matrix_multiplication
     '''
 
+    print("cross_product_matrix")
+    print(v)
+    
+    v2 = torch.tensor([
+                            [    0, -v[2],  v[1]],
+                            [ v[2],     0, -v[0]],
+                            [-v[1],  v[0],     0]
+                        ], dtype=v.dtype, device=v.device)
+    
+    print("v2")
+    print(v2)
+    
     return torch.tensor([
                             [    0, -v[2],  v[1]],
                             [ v[2],     0, -v[0]],
