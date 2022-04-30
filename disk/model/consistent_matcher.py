@@ -26,6 +26,7 @@ class ConsistentMatchDistribution(MatchDistribution):
         
         """
         distances
+        torch.Size([4660, 4672])
         tensor([[0.8001, 0.9821, 1.0317,  ..., 1.5377, 1.5198, 1.4498],
                 [1.2176, 1.1543, 1.1861,  ..., 1.4920, 1.4388, 1.3953],
                 [0.9011, 0.7790, 0.8318,  ..., 1.4034, 1.3502, 1.3481],
@@ -36,8 +37,6 @@ class ConsistentMatchDistribution(MatchDistribution):
                device='cuda:0', grad_fn=<MulBackward0>)
         """
        
-        print("distances")
-        print(distances.size())
         
         """
         inverse_T
@@ -47,6 +46,7 @@ class ConsistentMatchDistribution(MatchDistribution):
         affinity = -inverse_T * distances
         """
         affinity
+        torch.Size([4660, 4672])
         tensor([[-12.0015, -14.7314, -15.4759,  ..., -23.0651, -22.7974, -21.7463],
                 [-18.2635, -17.3140, -17.7920,  ..., -22.3796, -21.5814, -20.9297],
                 [-13.5168, -11.6845, -12.4776,  ..., -21.0507, -20.2523, -20.2213],
@@ -56,8 +56,6 @@ class ConsistentMatchDistribution(MatchDistribution):
                 [-19.6366, -17.8368, -17.5178,  ..., -13.3001,  -9.5326, -16.2570]],
                device='cuda:0', grad_fn=<MulBackward0>)
         """
-        print("affinity")
-        print(affinity.size())
 
         self._cat_I = Categorical(logits=affinity)
         self._cat_T = Categorical(logits=affinity.T)
@@ -65,6 +63,7 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._dense_logp = None
         self._dense_p    = None
 
+    # 
     @dimchecked
     def dense_p(self) -> ['N', 'M']:
         if self._dense_p is None:
