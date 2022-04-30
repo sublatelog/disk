@@ -64,7 +64,7 @@ class Reinforce:
 
         return loss, stats
 
-    # reinforce > accumulate_grad
+    # train > loss_fn.accumulate_grad
     def accumulate_grad(
         self,
         images  : NpArray[Image],    # [N_scenes, N_per_scene]
@@ -121,8 +121,7 @@ class Reinforce:
                     image2    = scene_images[i_image2]
                     features2 = scene_features[i_image2]
 
-                    # establish the match distribution and calculate the
-                    # gradient estimator
+                    # establish the match distribution and calculate the gradient estimator
                     match_dist = matcher.match_pair(features1, features2)
                     loss, stats_ = self._loss_for_pair(match_dist, image1, image2)
                     # this .backward() will accumulate in `detached_features`
