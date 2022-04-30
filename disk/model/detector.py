@@ -342,6 +342,7 @@ class Detector:
         """
         heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v) 
         torch.Size([3, 1, 96, 96, 64])
+        torch.Size([1, 2, 96, 96, 64])
         tensor([[[[[-3.1139e-01, -6.0347e-01,  8.3655e-02,  ...,  4.8296e-01, 6.0503e-01,  6.6835e-01],
                    [ 5.9942e-02,  1.5390e-01,  1.3652e-01,  ...,  6.1927e-01, 6.7140e-01,  7.0280e-01],
                    [ 7.9184e-02,  1.0621e-01,  1.6106e-01,  ...,  8.9157e-01, 9.1781e-01,  9.2466e-01],
@@ -355,8 +356,6 @@ class Detector:
                    [ 4.4098e-01,  4.8455e-01,  4.8971e-01,  ...,  6.5191e-01, 6.1169e-01,  5.7264e-01],
                    ...,
         """
-        print("heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v)")
-        print(heatmap.unfold(2, v, v).unfold(3, v, v).reshape(b, c, h // v, w // v, v*v).size())
 
         return heatmap.unfold(2, v, v) \
                       .unfold(3, v, v) \
@@ -453,6 +452,7 @@ class Detector:
         cgrid_tiled = self._tile(cgrid)
         """
         cgrid_tiled
+        torch.Size([1, 2, 96, 96, 64])
         tensor([[[[[  0,   1,   2,  ...,   5,   6,   7],
                    [  8,   9,  10,  ...,  13,  14,  15],
                    [ 16,  17,  18,  ...,  21,  22,  23],
@@ -471,8 +471,6 @@ class Detector:
 
         """
         
-        print("cgrid_tiled")
-        print(cgrid_tiled.size())
 
         # extract xy coordinates from cgrid according to indices sampled
         # before
