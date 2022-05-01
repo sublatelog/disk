@@ -121,7 +121,7 @@ class ConsistentMatchDistribution(MatchDistribution):
         return torch.stack([
                             right[paired_left],
                             paired_left,
-                        　　], dim=0)
+                            ], dim=0)
 
     # 確率を用いてindex選ぶ
     @dimchecked
