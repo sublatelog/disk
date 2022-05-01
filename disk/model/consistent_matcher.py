@@ -24,7 +24,7 @@ class ConsistentMatchDistribution(MatchDistribution):
         
         print("self.features_2().desc")
         print(self.features_2().desc.size())
-        print(self.features_2().desc)
+        print(self.features_2())
         
         """
         self.features_1().desc
