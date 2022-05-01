@@ -36,10 +36,10 @@ class Reinforce:
 
         sample_logp = match_dist.dense_logp() # [N, M]
 
-        # 各座標のキーポイントの期待値の合計　[N, M]
+        # 各座標のキーポイントの信頼度の合計　[N, M]
         kps_logp    = match_dist.features_1().kp_logp.reshape(-1, 1) + match_dist.features_2().kp_logp.reshape(1, -1)
 
-        # 各キーポイントの期待値の合計　scalar, used for introducing the lm_kp penalty
+        # 全キーポイントの信頼度の合計：画像1の信頼度の合計と画像2の信頼度の合計の合計　scalar, used for introducing the lm_kp penalty
         sample_lp_flat = match_dist.features_1().kp_logp.sum() + match_dist.features_2().kp_logp.sum()
         
         print("match_dist.features_1().kp_logp")
@@ -54,7 +54,7 @@ class Reinforce:
         # エピポラ選択loss：エピポラlossｘペア選択確率の合計
         reinforce  = (elementwise_rewards * sample_plogp).sum()
         
-        # 割引
+        # 割引された全キーポイントの信頼度の合計
         kp_penalty = self.lm_kp * sample_lp_flat
         
         # loss = -((elementwise_rewards * sample_plogp).sum() + self.lm_kp * sample_lp_flat.sum())
