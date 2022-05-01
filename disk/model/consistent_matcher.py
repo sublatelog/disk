@@ -18,9 +18,26 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._features_2 = features_2
         self.inverse_T = inverse_T
         
-        print("self.features_1().desc")
-        print(self.features_1().desc.size())
-        print(self.features_1().desc)
+        print("self.features_2()")
+        print(self.features_2().size())
+        print(self.features_2())
+        
+        print("self.features_2().desc")
+        print(self.features_2().desc.size())
+        print(self.features_2().desc)
+        
+        """
+        self.features_1().desc
+        torch.Size([4628, 128])
+        tensor([[ 0.0425,  0.0018,  0.0407,  ..., -0.1860,  0.0999,  0.0718],
+                [-0.0128, -0.0019,  0.0265,  ..., -0.1509,  0.0828,  0.1216],
+                [ 0.0249, -0.0470,  0.0325,  ..., -0.1770,  0.0103, -0.0296],
+                ...,
+                [ 0.0032,  0.2545,  0.0547,  ..., -0.0215, -0.2527,  0.0428],
+                [ 0.0599,  0.2595, -0.0524,  ..., -0.0028, -0.1365,  0.0202],
+                [ 0.0661,  0.2539, -0.0317,  ...,  0.0120, -0.2124,  0.0037]],
+               device='cuda:0', requires_grad=True)
+        """
         
 
         # distance_matrix(): 1.414213 * (1. - fs1 @ fs2.T).clamp(min=1e-6).sqrt()
@@ -89,10 +106,11 @@ class ConsistentMatchDistribution(MatchDistribution):
     def _select_cycle_consistent(self, left: ['N'], right: ['M']) -> [2, 'K']:
         
         print("left")
-        print(left.size)
+        print(left.size())
         print(left)
+        
         print("right")
-        print(right.size)
+        print(right.size())
         print(right)
         
         indexes = torch.arange(left.shape[0], device=left.device)
