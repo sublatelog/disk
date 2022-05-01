@@ -18,12 +18,6 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._features_2 = features_2
         self.inverse_T = inverse_T
         
-        print("self.features_2()")
-        print(self.features_2())
-        
-        print("self.features_2().desc")
-        print(self.features_2().desc.size())
-        print(self.features_2().desc)
         
         """
         self.features_1().desc
@@ -36,6 +30,20 @@ class ConsistentMatchDistribution(MatchDistribution):
                 [ 0.0599,  0.2595, -0.0524,  ..., -0.0028, -0.1365,  0.0202],
                 [ 0.0661,  0.2539, -0.0317,  ...,  0.0120, -0.2124,  0.0037]],
                device='cuda:0', requires_grad=True)
+        """
+        
+        """
+        self.features_2().desc
+        torch.Size([4637, 128])
+        tensor([[ 0.0304, -0.0420,  0.1260,  ...,  0.0878,  0.1678, -0.0104],
+                [ 0.0998,  0.0077,  0.0787,  ..., -0.0413,  0.0746, -0.0449],
+                [ 0.1103,  0.0231,  0.0861,  ..., -0.0399,  0.0898, -0.0487],
+                ...,
+                [ 0.0071, -0.0410, -0.1643,  ..., -0.0309,  0.0778, -0.0738],
+                [ 0.0007, -0.0430, -0.1586,  ..., -0.0314,  0.0760, -0.0707],
+                [ 0.0771, -0.0730, -0.1743,  ..., -0.0660,  0.0954, -0.0179]],
+               device='cuda:0', requires_grad=True)
+        
         """
         
 
