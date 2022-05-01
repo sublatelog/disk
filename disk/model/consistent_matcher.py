@@ -68,14 +68,16 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._dense_logp = None
         self._dense_p    = None
 
-    # 
+    # 縦方向と横方向の両方を満たす期待値
     @dimchecked
     def dense_p(self) -> ['N', 'M']:
         if self._dense_p is None:
             self._dense_p = self._cat_I.probs * self._cat_T.probs.T
 
         return self._dense_p
+    
 
+    # 縦方向と横方向のそれぞれの確率
     @dimchecked
     def dense_logp(self) -> ['N', 'M']:
         if self._dense_logp is None:
@@ -95,6 +97,7 @@ class ConsistentMatchDistribution(MatchDistribution):
             paired_left,
         ], dim=0)
 
+    # 確率を用いてindex選ぶ
     @dimchecked
     def sample(self) -> [2, 'K']:
         samples_I = self._cat_I.sample()
