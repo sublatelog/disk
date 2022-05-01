@@ -17,6 +17,11 @@ class ConsistentMatchDistribution(MatchDistribution):
         self._features_1 = features_1
         self._features_2 = features_2
         self.inverse_T = inverse_T
+        
+        print("self.features_1().desc")
+        print(self.features_1().desc.size())
+        print(self.features_1().desc)
+        
 
         # distance_matrix(): 1.414213 * (1. - fs1 @ fs2.T).clamp(min=1e-6).sqrt()
         distances = distance_matrix(
