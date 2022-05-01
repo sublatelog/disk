@@ -21,6 +21,8 @@ class Reinforce:
 
     # accumulate_grad > _loss_for_pair
     def _loss_for_pair(self, match_dist: MatchDistribution, img1: Image, img2: Image):
+        
+        # エピポラ報酬：キーポイントの位置をエピポラーで調整し、その距離を報酬として設定
         elementwise_rewards = self.reward(
                                           match_dist.features_1().kp,
                                           match_dist.features_2().kp,
@@ -34,21 +36,28 @@ class Reinforce:
 
         sample_logp = match_dist.dense_logp() # [N, M]
 
-        # [N, M]
-        kps_logp    = match_dist.features_1().kp_logp.reshape(-1, 1) \
-                    + match_dist.features_2().kp_logp.reshape(1, -1)
+        # 各座標のキーポイントの期待値の合計　[N, M]
+        kps_logp    = match_dist.features_1().kp_logp.reshape(-1, 1) + match_dist.features_2().kp_logp.reshape(1, -1)
 
-        # scalar, used for introducing the lm_kp penalty
-        sample_lp_flat = match_dist.features_1().kp_logp.sum() \
-                       + match_dist.features_2().kp_logp.sum()
+        # 各キーポイントの期待値の合計　scalar, used for introducing the lm_kp penalty
+        sample_lp_flat = match_dist.features_1().kp_logp.sum() + match_dist.features_2().kp_logp.sum()
+        
+        print("match_dist.features_1().kp_logp")
+        print(match_dist.features_1().kp_logp)
+        print("match_dist.features_1().kp_logp.sum()")
+        print(match_dist.features_1().kp_logp.sum())
         
         # [N, M], p * logp of sampling a pair
+        # ペア選択確率：正しいペアが選択される確率のloss
         sample_plogp = sample_p * (sample_logp + kps_logp)
 
+        # エピポラ選択loss：エピポラlossｘペア選択確率の合計
         reinforce  = (elementwise_rewards * sample_plogp).sum()
+        
+        # 割引
         kp_penalty = self.lm_kp * sample_lp_flat
-        #loss = -((elementwise_rewards * sample_plogp).sum() \
-        #         + self.lm_kp * sample_lp_flat.sum())
+        
+        # loss = -((elementwise_rewards * sample_plogp).sum() + self.lm_kp * sample_lp_flat.sum())
 
         loss = -reinforce - kp_penalty
 
