@@ -87,15 +87,23 @@ class ConsistentMatchDistribution(MatchDistribution):
 
     @dimchecked
     def _select_cycle_consistent(self, left: ['N'], right: ['M']) -> [2, 'K']:
+        
+        print("left")
+        print(left.size)
+        print(left)
+        print("right")
+        print(right.size)
+        print(right)
+        
         indexes = torch.arange(left.shape[0], device=left.device)
         cycle_consistent = right[left] == indexes
 
         paired_left = left[cycle_consistent]
 
         return torch.stack([
-            right[paired_left],
-            paired_left,
-        ], dim=0)
+                            right[paired_left],
+                            paired_left,
+                        　　], dim=0)
 
     # 確率を用いてindex選ぶ
     @dimchecked
@@ -107,6 +115,7 @@ class ConsistentMatchDistribution(MatchDistribution):
 
     @dimchecked
     def mle(self) -> [2, 'K']:
+        # 各行で確率の最大値のindexを選ぶ
         maxes_I = self._cat_I.logits.argmax(dim=1)
         maxes_T = self._cat_T.logits.argmax(dim=1)
 
