@@ -19,12 +19,11 @@ class ConsistentMatchDistribution(MatchDistribution):
         self.inverse_T = inverse_T
         
         print("self.features_2()")
-        print(self.features_2().size())
         print(self.features_2())
         
         print("self.features_2().desc")
         print(self.features_2().desc.size())
-        print(self.features_2())
+        print(self.features_2().desc)
         
         """
         self.features_1().desc
